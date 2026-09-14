@@ -1,0 +1,1804 @@
+<!DOCTYPE html>
+<html lang="nl">
+  <head>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no"
+    />
+    <title>Tussenwoord</title>
+    <style>
+      #splash {
+        position: fixed; inset: 0;
+        background: var(--ink);
+        display: flex; align-items: center; justify-content: center;
+        z-index: 9999;
+        transition: opacity 0.4s;
+      }
+      :root {
+        --ink: #1b1b2f;
+        --ink-soft: #2a2a42;
+        --paper: #f2efea;
+        --paper-dim: #c9c4b8;
+        --ember: #ff7a33;
+        --ember-dim: #8c4420;
+        --slate: #3d3d52;
+        --good: #5fae7e;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: var(--ink);
+        color: var(--paper);
+        font-family: "Helvetica Neue", Arial, sans-serif;
+        min-height: 100vh;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 28px 18px 60px;
+      }
+
+      .wordmark {
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 2.1rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        margin: 0;
+        color: var(--paper);
+      }
+
+      .wordmark span {
+        color: var(--ember);
+        font-style: italic;
+      }
+
+      .subtitle {
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--paper-dim);
+        margin: 6px 0 20px;
+        text-align: center;
+      }
+
+      /* --- The signature element: the shrinking dictionary rail --- */
+      .rail-wrap {
+        display: flex;
+        align-items: stretch;
+        gap: 16px;
+        width: 100%;
+        max-width: 380px;
+        margin-bottom: 30px;
+      }
+
+      .rail {
+        position: relative;
+        width: 10px;
+        background: var(--slate);
+        border-radius: 6px;
+        overflow: hidden;
+        flex-shrink: 0;
+        flex-grow: 1;
+        min-height: 80px;
+      }
+
+      .rail-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0;
+        align-self: stretch;
+      }
+
+      .rail-pct {
+        font-family: "Courier New", monospace;
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: var(--paper-dim);
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+
+      .rail-fill {
+        position: absolute;
+        left: 0;
+        width: 100%;
+        background: linear-gradient(
+          180deg,
+          var(--ember) 0%,
+          var(--ember-dim) 100%
+        );
+        border-radius: 6px;
+        transition: top 0.55s cubic-bezier(0.34, 1.56, 0.64, 1),
+          height 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+
+      .bounds {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .bound-box {
+        border: 1px solid var(--slate);
+        border-radius: 8px;
+        padding: 10px 14px;
+        background: var(--ink-soft);
+      }
+
+      .bound-label {
+        font-size: 0.65rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--paper-dim);
+        margin: 0 0 2px;
+      }
+
+      .bound-word {
+        font-family: "Courier New", monospace;
+        font-size: 1.3rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        margin: 0;
+        color: var(--paper);
+        overflow: hidden;
+        position: relative;
+        line-height: 1.5;
+      }
+
+      .bound-word-inner {
+        display: inline-block;
+        will-change: transform, opacity;
+      }
+
+      @keyframes boundSlideOutUp {
+        to {
+          transform: translateY(-120%);
+          opacity: 0;
+        }
+      }
+      @keyframes boundSlideInUp {
+        from {
+          transform: translateY(120%);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+      @keyframes boundSlideOutDown {
+        to {
+          transform: translateY(120%);
+          opacity: 0;
+        }
+      }
+      @keyframes boundSlideInDown {
+        from {
+          transform: translateY(-120%);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .bound-slide-out-up {
+        animation: boundSlideOutUp 0.22s ease-in forwards;
+      }
+      .bound-slide-in-up {
+        animation: boundSlideInUp 0.22s ease-out forwards;
+      }
+      .bound-slide-out-down {
+        animation: boundSlideOutDown 0.22s ease-in forwards;
+      }
+      .bound-slide-in-down {
+        animation: boundSlideInDown 0.22s ease-out forwards;
+      }
+
+      .bound-box.top {
+        margin-bottom: 0px;
+      }
+
+      .gap-indicator {
+        text-align: center;
+        font-size: 0.7rem;
+        color: var(--paper-dim);
+        padding: 4px 0;
+      }
+
+      /* --- Guess input --- */
+      .guess-form {
+        display: flex;
+        gap: 6px;
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        min-width: 0;
+      }
+
+      .guess-input {
+        flex: 1 1 auto;
+        min-width: 0;
+        background: var(--ink-soft);
+        border: 2px solid var(--slate);
+        border-radius: 8px;
+        color: var(--paper);
+        font-family: "Courier New", monospace;
+        font-size: 1.2rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        text-align: center;
+        padding: 12px 6px;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+
+      .guess-input:focus {
+        border-color: var(--ember);
+      }
+
+      .guess-btn {
+        flex: 0 0 auto;
+        background: var(--ember);
+        color: var(--ink);
+        border: none;
+        border-radius: 8px;
+        padding: 0 16px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.15s, transform 0.1s;
+        white-space: nowrap;
+      }
+
+      .guess-btn:active {
+        transform: scale(0.96);
+      }
+      .guess-btn:disabled {
+        background: var(--slate);
+        color: var(--paper-dim);
+        cursor: default;
+      }
+
+      .feedback {
+        min-height: 20px;
+        font-size: 0.85rem;
+        color: var(--ember);
+        margin-bottom: 18px;
+        text-align: center;
+      }
+
+      .info-row {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        max-width: 380px;
+        margin-bottom: 6px;
+        font-size: 0.7rem;
+        color: var(--paper-dim);
+        letter-spacing: 0.04em;
+      }
+
+      .footer-note {
+        margin-top: 36px;
+        font-size: 0.68rem;
+        color: var(--paper-dim);
+        text-align: center;
+        max-width: 320px;
+        line-height: 1.5;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+
+      .settings-btn {
+        background: transparent;
+        border: 1px solid var(--slate);
+        color: var(--paper-dim);
+        border-radius: 6px;
+        padding: 6px 14px;
+        font-size: 0.72rem;
+        cursor: pointer;
+        margin-bottom: 14px;
+        transition: border-color 0.15s, color 0.15s;
+      }
+
+      .lang-toggle-btn {
+        background: transparent;
+        border: 1px solid var(--slate);
+        color: var(--paper);
+        border-radius: 6px;
+        padding: 6px 14px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        cursor: pointer;
+        margin-bottom: 14px;
+        transition: border-color 0.15s, color 0.15s, background 0.15s;
+      }
+
+      .lang-toggle-btn:hover {
+        border-color: var(--ember);
+        color: var(--ember);
+      }
+
+      /* --- Remaining words indicator --- */
+      .remaining-indicator {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin-bottom: 18px;
+      }
+
+      .remaining-count {
+        display: inline-block;
+        font-family: "Courier New", monospace;
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--ember);
+        transition: color 0.2s;
+      }
+
+      @keyframes countPulse {
+        0% {
+          transform: scale(1);
+        }
+        30% {
+          transform: scale(1.18);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      .count-pulse {
+        animation: countPulse 0.4s ease-out;
+      }
+
+      .remaining-label {
+        font-size: 0.72rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--paper-dim);
+      }
+
+      .smart-keyboard {
+        width: 100%;
+        max-width: 380px;
+        margin-bottom: 14px;
+      }
+
+      .kb-row {
+        display: flex;
+        justify-content: center;
+        gap: 4px;
+        margin-bottom: 4px;
+      }
+
+      .kb-key {
+        width: 30px;
+        height: 36px;
+        border-radius: 5px;
+        border: 1px solid var(--slate);
+        background: var(--ink-soft);
+        color: var(--paper);
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .kb-key.disabled {
+        opacity: 0.3;
+        pointer-events: none;
+      }
+
+      .kb-key.correct {
+        background-color: green;
+        color: white;
+      }
+      .stats-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.75);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .stats-modal.show {
+        display: flex;
+      }
+
+      .stats-content {
+        position: relative;
+        width: min(420px, 90vw);
+        background: var(--ink-soft);
+        border-radius: 12px;
+        padding: 20px;
+      }
+
+      .stats-close {
+        position: absolute;
+        right: 12px;
+        top: 12px;
+        background: none;
+        border: none;
+        color: var(--paper);
+        font-size: 1.4rem;
+        cursor: pointer;
+      }
+
+      .stats-title {
+        margin: 0 0 16px;
+        text-align: center;
+      }
+
+      .stats-result {
+        text-align: center;
+        margin-bottom: 20px;
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 1rem;
+        color: black;
+      }
+
+      .stats-result.win {
+        background: var(--good);
+      }
+
+      .stats-result.loss {
+        background: var(--ember);
+      }
+
+      .histogram-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 6px;
+      }
+
+      .histogram-label {
+        width: 30px;
+        text-align: right;
+        font-family: monospace;
+      }
+
+      .histogram-bar {
+        height: 24px;
+        min-width: 24px;
+        background: var(--ember);
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding-right: 8px;
+        color: black;
+        font-weight: bold;
+      }
+
+      .stats-new-game {
+        width: 100%;
+        margin-top: 20px;
+        border: none;
+        border-radius: 8px;
+        padding: 12px;
+        background: var(--ember);
+        color: var(--ink);
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      /* --- Mode selector --- */
+      .mode-selector {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 20px;
+        width: 100%;
+        max-width: 380px;
+      }
+
+      .mode-option {
+        flex: 1;
+        position: relative;
+      }
+
+      .mode-option input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .mode-option label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        padding: 6px 8px;
+        border: 2px solid var(--slate);
+        border-radius: 8px;
+        background: var(--ink-soft);
+        color: var(--paper-dim);
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        cursor: pointer;
+        transition: border-color 0.15s, color 0.15s, background 0.15s;
+        user-select: none;
+        white-space: nowrap;
+      }
+
+      .mode-option input[type="radio"]:checked + label {
+        border-color: var(--ember);
+        color: var(--ember);
+        background: var(--ink);
+      }
+
+      .mode-option input[type="radio"]:disabled + label {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+
+      .daily-badge {
+        font-size: 0.55rem;
+        background: var(--ember);
+        color: var(--ink);
+        border-radius: 4px;
+        padding: 1px 4px;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+      }
+
+      .daily-badge.done {
+        background: var(--slate);
+        color: var(--paper-dim);
+      }
+
+      /* --- Streak --- */
+      .streak-display {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--ember);
+        white-space: nowrap;
+        padding: 6px 10px;
+        border: 2px solid var(--slate);
+        border-radius: 8px;
+        background: var(--ink-soft);
+        flex-shrink: 0;
+      }
+
+      .streak-display.cold {
+        color: var(--paper-dim);
+        border-color: var(--slate);
+      }
+
+      .streak-count {
+        font-size: 0.85rem;
+      }
+
+      /* --- Hint letter reveal --- */
+      #hintDisplay {
+        display: flex;
+        justify-content: center;
+        gap: 3px;
+      }
+
+      .hint-letter {
+        display: inline-block;
+        min-width: 1ch;
+      }
+
+      .hint-letter-dot {
+        opacity: 0.5;
+      }
+
+      @keyframes hintLetterReveal {
+        0% {
+          transform: scale(0.4) translateY(6px);
+          opacity: 0;
+        }
+        60% {
+          transform: scale(1.15);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(1) translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .hint-letter-reveal {
+        animation: hintLetterReveal 0.35s ease-out;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="splash">
+      <h1 id="splashTitle">tussen<span>woord</span></h1>
+    </div>
+    <h1 class="wordmark" id="wordmarkTitle">tussen<span>woord</span></h1>
+    <p class="subtitle" id="subtitleText">vind het woord ertussenin</p>
+
+    <button type="button" class="lang-toggle-btn" id="langToggleBtn">
+      🇪🇸 Español
+    </button>
+
+    <!-- Mode selector + streak -->
+    <div style="display:flex; gap:6px; margin-bottom:20px; width:100%; max-width:380px; align-items:stretch;">
+      <div class="streak-display cold" id="streakDisplay">
+        🔥 <span class="streak-count" id="streakCount">0</span>
+      </div>
+      <div class="mode-selector" id="modeSelector" style="margin-bottom:0; flex:1; max-width:none;">
+        <div class="mode-option">
+          <input type="radio" name="gameMode" id="modeDaily" value="daily" checked />
+          <label for="modeDaily"><span id="dailyLabelText">📅 Dagwoord</span> <span class="daily-badge" id="dailyBadge">NIEUW</span></label>
+        </div>
+        <div class="mode-option">
+          <input type="radio" name="gameMode" id="modePractice" value="practice" />
+          <label for="modePractice"><span id="practiceLabelText">🎯 Oefenen</span></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="remaining-indicator" id="remainingIndicator">
+      <span class="remaining-count" id="remainingCount">315</span>
+      <span class="remaining-label" id="remainingLabelText">mogelijke woorden over</span>
+    </div>
+
+    <div class="rail-wrap">
+      <div class="rail-col">
+        <span class="rail-pct" id="railPctTop">0%</span>
+        <div class="rail">
+          <div class="rail-fill" id="railFill"></div>
+        </div>
+        <span class="rail-pct" id="railPctBottom">0%</span>
+      </div>
+      <div class="bounds">
+        <div class="bound-box top">
+          <p class="bound-label" id="lowerBoundLabel">na</p>
+          <p class="bound-word" id="lowerBound"><span class="bound-word-inner" id="lowerBoundInner">AAAAA</span></p>
+        </div>
+    <form class="guess-form" id="guessForm">
+      <input
+        type="text"
+        class="guess-input"
+        id="guessInput"
+        maxlength="5"
+        autocomplete="off"
+        autocapitalize="characters"
+        spellcheck="false"
+        placeholder="woord"
+      />
+      <button type="submit" class="guess-btn" id="guessBtn">raad</button>
+    </form>
+        <div class="bound-box bottom">
+          <p class="bound-label" id="upperBoundLabel">voor</p>
+          <p class="bound-word" id="upperBound"><span class="bound-word-inner" id="upperBoundInner">ZZZZZ</span></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <div class="info-row">
+      <span id="triesLeft">12 beurten over</span>
+      <span id="guessNum">poging 1</span>
+    </div>
+
+    <div class="smart-keyboard" id="smartKeyboard">
+      <div class="kb-row"></div>
+      <div class="kb-row"></div>
+      <div class="kb-row"></div>
+    </div>
+
+    <div class="stats-modal" id="statsModal">
+      <div class="stats-content">
+        <button class="stats-close" id="closeStatsBtn">✕</button>
+
+        <h2 class="stats-title" id="statsTitleText">Statistieken</h2>
+        <div id="statsMessage" class="stats-result"></div>
+        <div id="statsHistogram"></div>
+
+        <button class="stats-new-game" id="statsNewGameBtn">Nieuw spel</button>
+      </div>
+    </div>
+
+    <div
+      style="
+        text-align: center;
+        margin-bottom: 12px;
+        width: 100%;
+        max-width: 380px;
+      "
+    > <div
+        id="hintDisplay"
+        style="
+          font-family: 'Courier New', monospace;
+          font-size: 1.3rem;
+          letter-spacing: 0.15em;
+          color: var(--good);
+          font-weight: bold;
+          min-height: 24px;
+        "
+      ></div>
+      <button
+        type="button"
+        class="settings-btn"
+        id="hintBtn"
+        style="margin-bottom: 8px; width: 100%"
+      >
+        💡 Geef een hint
+      </button>
+
+    </div>
+
+    <button class="settings-btn" id="reloadBtn" type="button">
+      🔄 nieuw spel
+    </button>
+
+    <p class="footer-note" id="footerNote">
+      Raad het 5-letterwoord. TussenWoord zegt of het geheime woord daarvoor of
+      daarna komt in het alfabet. Elke poging verkleint de mogelijke reeks.
+    </p>
+
+    <script>
+      // Sentinel bounds using extreme code units instead of "AAAAA"/"ZZZZZ".
+      // This matters for Spanish, where Ñ (U+00D1) sorts AFTER Z in plain
+      // string comparison -- a word like "ÑATOS" would otherwise compare as
+      // greater than "ZZZZZ" and get wrongly rejected as "out of bounds".
+      // Display still shows AAAAA/ZZZZZ as placeholders via displayBound().
+      const ALPHA_FIRST = "\u0000\u0000\u0000\u0000\u0000";
+      const ALPHA_LAST = "\uffff\uffff\uffff\uffff\uffff";
+      const MAX_TRIES = 12;
+
+      // --- Animation helpers (bound slide, count tick, hint reveal) ---
+      function prefersReducedMotion() {
+        return (
+          window.matchMedia &&
+          window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        );
+      }
+
+      // Tracks the last-displayed bound text so we only animate on real changes,
+      // and skip animating the very first render (game start / reset).
+      const boundDisplayCache = { lower: null, upper: null };
+
+      function animateBoundChange(el, newText, direction) {
+        const outClass =
+          direction === "up" ? "bound-slide-out-up" : "bound-slide-out-down";
+        const inClass =
+          direction === "up" ? "bound-slide-in-up" : "bound-slide-in-down";
+
+        // Clear any animation already in flight on this element
+        el.classList.remove(
+          "bound-slide-out-up",
+          "bound-slide-out-down",
+          "bound-slide-in-up",
+          "bound-slide-in-down"
+        );
+        void el.offsetWidth; // force reflow so class removal registers before re-adding
+
+        el.classList.add(outClass);
+
+        el.addEventListener(
+          "animationend",
+          function onOutEnd() {
+            el.textContent = newText;
+            el.classList.remove(outClass);
+            void el.offsetWidth;
+            el.classList.add(inClass);
+            el.addEventListener(
+              "animationend",
+              function onInEnd() {
+                el.classList.remove(inClass);
+              },
+              { once: true }
+            );
+          },
+          { once: true }
+        );
+      }
+
+      // kind: 'lower' | 'upper'. Lower bound grows up the alphabet -> slides "up".
+      // Upper bound shrinks down the alphabet -> slides "down".
+      function updateBoundWord(elId, newText, kind) {
+        const el = document.getElementById(elId);
+        const prev = boundDisplayCache[kind];
+        boundDisplayCache[kind] = newText;
+
+        if (prev === null || prev === newText || prefersReducedMotion()) {
+          el.textContent = newText;
+          return;
+        }
+
+        animateBoundChange(el, newText, kind === "lower" ? "up" : "down");
+      }
+
+      // Tracks the last-displayed remaining count so we can tween between values.
+      let displayedRemainingCount = null;
+      let remainingCountAnimId = 0;
+
+      function animateCountChange(el, from, to) {
+        const myId = ++remainingCountAnimId;
+        const duration = 400;
+        const start = performance.now();
+        el.classList.add("count-pulse");
+
+        function step(now) {
+          if (myId !== remainingCountAnimId) return; // superseded by a newer update
+          const progress = Math.min(1, (now - start) / duration);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          el.textContent = Math.round(from + (to - from) * eased);
+          if (progress < 1) {
+            requestAnimationFrame(step);
+          } else {
+            el.textContent = to;
+            el.classList.remove("count-pulse");
+          }
+        }
+        requestAnimationFrame(step);
+      }
+
+      const translations = {
+        nl: {
+          titleTag: "Tussenwoord",
+          subtitle: "vind het woord ertussenin",
+          wordmarkPrefix: "tussen",
+          wordmarkSuffix: "woord",
+          switchLangBtn: "🇪🇸 Español",
+          dailyLabel: "📅 Dagwoord",
+          practiceLabel: "🎯 Oefenen",
+          badgeNew: "NIEUW",
+          badgeDone: "GEDAAN",
+          remainingLabel: "mogelijke woorden over",
+          na: "na",
+          voor: "voor",
+          guessPlaceholder: "woord",
+          guessBtn: "raad",
+          newGameBtn: "🔄 nieuw spel",
+          triesLeft: (n) => `${n} beurten over`,
+          guessNum: (n) => `poging ${n}`,
+          feedbackLen: "vul een 5-letterwoord in",
+          feedbackLetters: "alleen letters zijn toegestaan",
+          feedbackNotInList: "dat woord staat niet in de woordenlijst",
+          feedbackAfter: (w) =>
+            `dat woord ligt niet meer tussen de grenzen — moet na "${w}" komen`,
+          feedbackBefore: (w) =>
+            `dat woord ligt niet meer tussen de grenzen — moet voor "${w}" komen`,
+          loseMsg: (w) => `helaas — het woord was: ${w}`,
+          hintBtn: "💡 Geef een hint",
+          hintWait: (s) => `💡 Hint (wacht ${s}s)`,
+          hintNone: "💡 Geen hints meer",
+          footer:
+            'Raad het 5-letterwoord. TussenWoord zegt of het geheime woord daarvoor of daarna komt in het alfabet. Elke poging verkleint de mogelijke reeks.',
+          statsTitle: "Statistieken",
+          statsNewGame: "Nieuw spel",
+          winMsg: (tries, secret) =>
+            `🎉 Opgelost in ${tries} ${
+              tries === 1 ? "poging" : "pogingen"
+            }<br><span style="font-size:1.2rem">${secret}</span>`,
+          lossMsg: (secret) =>
+            `❌ Niet gehaald<br>Het woord was<br><span style="font-size:1.2rem">${secret}</span>`,
+        },
+        es: {
+          titleTag: "Entrepalabra",
+          subtitle: "encuentra la palabra intermedia",
+          wordmarkPrefix: "entre",
+          wordmarkSuffix: "palabra",
+          switchLangBtn: "🇳🇱 Nederlands",
+          dailyLabel: "📅 Palabra del día",
+          practiceLabel: "🎯 Practicar",
+          badgeNew: "NUEVO",
+          badgeDone: "HECHO",
+          remainingLabel: "palabras posibles",
+          na: "después de",
+          voor: "antes de",
+          guessPlaceholder: "palabra",
+          guessBtn: "adivinar",
+          newGameBtn: "🔄 nuevo juego",
+          triesLeft: (n) => `${n} intentos restantes`,
+          guessNum: (n) => `intento ${n}`,
+          feedbackLen: "introduce una palabra de 5 letras",
+          feedbackLetters: "solo se permiten letras",
+          feedbackNotInList: "esa palabra no está en la lista",
+          feedbackAfter: (w) =>
+            `esa palabra ya no está entre los límites — debe ir después de "${w}"`,
+          feedbackBefore: (w) =>
+            `esa palabra ya no está entre los límites — debe ir antes de "${w}"`,
+          loseMsg: (w) => `no lo lograste — la palabra era: ${w}`,
+          hintBtn: "💡 Dame una pista",
+          hintWait: (s) => `💡 Pista (espera ${s}s)`,
+          hintNone: "💡 Sin más pistas",
+          footer:
+            'Adivina la palabra de 5 letras. Entrepalabra te dice si la palabra secreta va antes o después en el alfabeto. Cada intento reduce las posibilidades.',
+          statsTitle: "Estadísticas",
+          statsNewGame: "Nuevo juego",
+          winMsg: (tries, secret) =>
+            `🎉 Resuelto en ${tries} ${
+              tries === 1 ? "intento" : "intentos"
+            }<br><span style="font-size:1.2rem">${secret}</span>`,
+          lossMsg: (secret) =>
+            `❌ No lo lograste<br>La palabra era<br><span style="font-size:1.2rem">${secret}</span>`,
+        },
+      };
+
+      let currentLang = "nl";
+      function t(key) {
+        return translations[currentLang][key];
+      }
+
+      // Word lists are loaded once for both languages and cached here, so
+      // switching languages mid-session doesn't require a re-fetch.
+      const WORD_SETS = {
+        nl: { guess: [], answer: [] },
+        es: { guess: [], answer: [] },
+      };
+
+      let GUESS_WORDS = [];
+      let ANSWER_WORDS = [];
+      let DEFAULT_GUESS_WORDS = [];
+      let DEFAULT_ANSWER_WORDS = [];
+
+      let secret, lowerBound, upperBound, guesses, gameOver;
+      let cooldownTimer = null;
+      let cooldownRemaining = 0;
+      let currentMode = "daily"; // "daily" or "practice"
+      let revealedHintLetters = 0;
+
+      // --- Small, defensive DOM helpers ---------------------------------
+      // These wrap getElementById + property assignment in a guard, so
+      // that if a single element is ever missing (typo, future markup
+      // change, etc.) it only skips THAT element instead of throwing and
+      // silently aborting every translation update that comes after it
+      // in the calling function. This is what previously made partial
+      // translation failures possible: a single unguarded assignment
+      // throwing would stop the rest of applyTranslations() from running.
+      function setText(id, value) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+        else console.warn(`setText: no element with id "${id}"`);
+      }
+      function setHTML(id, value) {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = value;
+        else console.warn(`setHTML: no element with id "${id}"`);
+      }
+      function setPlaceholder(id, value) {
+        const el = document.getElementById(id);
+        if (el) el.placeholder = value;
+        else console.warn(`setPlaceholder: no element with id "${id}"`);
+      }
+
+      function getAlphabet() {
+        // Spanish keyboard includes Ñ in its natural alphabetical spot.
+        return currentLang === "es"
+          ? "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ".split("")
+          : "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+      }
+
+      function letterRegex() {
+        return currentLang === "es" ? /^[A-ZÑ]{5}$/ : /^[A-Z]{5}$/;
+      }
+
+      function inputFilterRegex() {
+        return currentLang === "es" ? /[^a-zA-ZñÑ]/g : /[^a-zA-Z]/g;
+      }
+
+      // --- Alphabet-aware word comparison --------------------------------
+      // Plain JS string comparison (`<`, `>`) sorts by raw UTF-16 code unit,
+      // which puts Ñ (U+00D1 = 209) AFTER Z (U+005A = 90). In real Spanish
+      // collation Ñ sits right after N and before O — which is also where
+      // it's placed in getAlphabet() for keyboard display. wordCompare()
+      // ranks each character by its position in getAlphabet() instead of
+      // its raw code point, so keyboard greying and all bound/guess logic
+      // agree on where Ñ belongs. The \u0000/\uffff sentinel characters
+      // (used for ALPHA_FIRST/ALPHA_LAST and keyboard-viability padding)
+      // aren't real letters, so they're ranked below/above everything else
+      // rather than looked up in the alphabet.
+      function letterRank(ch) {
+        if (ch === "\u0000") return -1;
+        if (ch === "\uffff") return 1000;
+        const idx = getAlphabet().indexOf(ch);
+        return idx === -1 ? 999 : idx;
+      }
+
+      function wordCompare(a, b) {
+        a = a || "";
+        b = b || "";
+        const len = Math.max(a.length, b.length);
+        for (let i = 0; i < len; i++) {
+          const ra = letterRank(a[i] ?? "\u0000");
+          const rb = letterRank(b[i] ?? "\u0000");
+          if (ra !== rb) return ra - rb;
+        }
+        return 0;
+      }
+
+      // Per-language localStorage keys, so daily/streak/stats progress for
+      // Dutch and Spanish don't overwrite each other. Dutch keeps the
+      // original (unsuffixed) keys for backward compatibility with
+      // existing saved progress.
+      function storageKey(base) {
+        return currentLang === "es" ? `${base}-es` : base;
+      }
+
+      function displayBound(word) {
+        if (word === ALPHA_FIRST) return "AAAAA";
+        if (word === ALPHA_LAST) return "ZZZZZ";
+        return word;
+      }
+
+      function setActiveWordSet(lang) {
+        GUESS_WORDS = WORD_SETS[lang].guess;
+        ANSWER_WORDS = WORD_SETS[lang].answer;
+        DEFAULT_GUESS_WORDS = [...GUESS_WORDS];
+        DEFAULT_ANSWER_WORDS = [...ANSWER_WORDS];
+      }
+
+      function buildKeyboard() {
+        const rows = document.querySelectorAll(".kb-row");
+        const letters = getAlphabet();
+
+        rows.forEach((row) => (row.innerHTML = ""));
+
+        const row = rows[0]; // put everything in one row (or adjust if you want multiple rows)
+
+        letters.forEach((letter) => {
+          const key = document.createElement("div");
+
+          key.className = "kb-key";
+          key.dataset.letter = letter;
+          key.textContent = letter;
+
+          row.appendChild(key);
+        });
+      }
+
+      function getViableNextLetters(prefix) {
+        // Pure alphabetical-range check: for each letter, is there ANY
+        // possible 5-letter string starting with prefix+letter that could
+        // fall strictly between lowerBound and upperBound? This does NOT
+        // check whether such a word actually exists in the dictionary —
+        // only whether the alphabetical range leaves room for it.
+        const letters = getAlphabet();
+        const viable = new Set();
+
+        letters.forEach((letter) => {
+          const candidatePrefix = (prefix + letter).slice(0, 5);
+          const padLen = 5 - candidatePrefix.length;
+          const smallest = candidatePrefix + "\u0000".repeat(padLen);
+          const largest = candidatePrefix + "\uffff".repeat(padLen);
+
+          if (wordCompare(largest, lowerBound) > 0 && wordCompare(smallest, upperBound) < 0) {
+            viable.add(letter);
+          }
+        });
+
+        return viable;
+      }
+
+      function updateKeyboard() {
+        const input = document.getElementById("guessInput").value.toUpperCase();
+
+        const viableLetters = getViableNextLetters(input);
+
+        document.querySelectorAll(".kb-key").forEach((key) => {
+          const letter = key.dataset.letter;
+
+          if (viableLetters.has(letter)) {
+            key.classList.remove("disabled");
+          } else {
+            key.classList.add("disabled");
+          }
+        });
+      }
+
+      function parseCustomWordList(raw) {
+        // Accept words separated by newlines, commas, or spaces
+        const candidates = raw
+          .split(/[\n,]+/)
+          .map((w) => w.trim().toUpperCase())
+          .filter((w) => w.length > 0);
+
+        const valid = [];
+        const invalid = [];
+        const seen = new Set();
+
+        candidates.forEach((w) => {
+          if (!letterRegex().test(w)) {
+            invalid.push(w);
+          } else if (!seen.has(w)) {
+            seen.add(w);
+            valid.push(w);
+          }
+        });
+
+        return { valid: valid.sort(wordCompare), invalid };
+      }
+
+      function countRemainingWords() {
+        // How many words in GUESS_WORDS are still alphabetically possible
+        // given the current lowerBound/upperBound, excluding the bounds
+        // themselves.
+        return GUESS_WORDS.filter(
+          (w) => wordCompare(w, lowerBound) > 0 && wordCompare(w, upperBound) < 0
+        ).length;
+      }
+
+      function updateRemainingIndicator() {
+        const count = countRemainingWords();
+        const el = document.getElementById("remainingCount");
+
+        // Subtle color cue: fewer remaining = closer to winning
+        if (count <= 3) {
+          el.style.color = "var(--good)";
+        } else {
+          el.style.color = "var(--ember)";
+        }
+
+        if (
+          displayedRemainingCount === null ||
+          displayedRemainingCount === count ||
+          prefersReducedMotion()
+        ) {
+          remainingCountAnimId++; // cancel any in-flight tween
+          el.classList.remove("count-pulse");
+          el.textContent = count;
+          displayedRemainingCount = count;
+          return;
+        }
+
+        const from = displayedRemainingCount;
+        displayedRemainingCount = count;
+        animateCountChange(el, from, count);
+      }
+
+      function pickDailySecret() {
+        // Same word for everyone on the same calendar day (UTC date as seed)
+        const today = new Date();
+        const year = today.getUTCFullYear();
+        const month = today.getUTCMonth(); // 0-11
+        const day = today.getUTCDate();
+
+        // Combine date fields numerically (avoids string/char-code linearity issues)
+        let seed = year * 10000 + month * 100 + day;
+
+        // Integer finalizer (splitmix32-style) to destroy any linear relationship
+        // between consecutive seed values
+        seed = seed >>> 0;
+        seed ^= seed >>> 16;
+        seed = Math.imul(seed, 0x45d9f3b) >>> 0;
+        seed ^= seed >>> 16;
+        seed = Math.imul(seed, 0x45d9f3b) >>> 0;
+        seed ^= seed >>> 16;
+        seed = seed >>> 0; // ← fix: clamp back to unsigned before the modulo
+
+        const idx = seed % ANSWER_WORDS.length;
+        return ANSWER_WORDS[idx];
+      }
+
+      function getTodayKey() {
+        const today = new Date();
+        return storageKey(
+          `daily-${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`
+        );
+      }
+
+      function getDailyState() {
+        const key = getTodayKey();
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : null;
+      }
+
+      function saveDailyState() {
+        const key = getTodayKey();
+        localStorage.setItem(key, JSON.stringify({
+          secret,
+          lowerBound,
+          upperBound,
+          guesses,
+          gameOver,
+        }));
+      }
+
+      function isDailyDone() {
+        const state = getDailyState();
+        return state && state.gameOver;
+      }
+
+      // --- Streak ---
+      function getStreakData() {
+        const raw = localStorage.getItem(storageKey("streak"));
+        return raw ? JSON.parse(raw) : { count: 0, lastDate: null };
+      }
+
+      function saveStreakData(data) {
+        localStorage.setItem(storageKey("streak"), JSON.stringify(data));
+      }
+
+      function dateKey(date) {
+        return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+      }
+
+      function yesterdayKey() {
+        const d = new Date();
+        d.setDate(d.getDate() - 1);
+        return dateKey(d);
+      }
+
+      function recordDailyWinStreak() {
+        const streak = getStreakData();
+        const today = dateKey(new Date());
+        if (streak.lastDate === today) return; // already counted today
+        const extended = streak.lastDate === yesterdayKey();
+        streak.count = extended ? streak.count + 1 : 1;
+        streak.lastDate = today;
+        saveStreakData(streak);
+      }
+
+      function updateStreakDisplay() {
+        const streak = getStreakData();
+        const today = dateKey(new Date());
+        // Reset streak if last win was before yesterday
+        if (streak.lastDate && streak.lastDate !== today && streak.lastDate !== yesterdayKey()) {
+          streak.count = 0;
+          saveStreakData(streak);
+        }
+        const el = document.getElementById("streakDisplay");
+        const countEl = document.getElementById("streakCount");
+        countEl.textContent = streak.count;
+        if (streak.count > 0) {
+          el.classList.remove("cold");
+        } else {
+          el.classList.add("cold");
+        }
+      }
+
+      function updateModeSelector() {
+        const dailyDone = isDailyDone();
+        const dailyInput = document.getElementById("modeDaily");
+        const badge = document.getElementById("dailyBadge");
+
+        if (dailyDone) {
+          dailyInput.disabled = true;
+          document.getElementById("modePractice").checked = true;
+          badge.textContent = t("badgeDone");
+          badge.classList.add("done");
+        } else {
+          dailyInput.disabled = false;
+          badge.textContent = t("badgeNew");
+          badge.classList.remove("done");
+        }
+      }
+
+      // Every DOM write here goes through setText/setHTML/setPlaceholder,
+      // so a problem updating one element (missing node, etc.) can never
+      // silently stop the rest of the translations from being applied —
+      // each line is independent. Also explicitly refreshes the
+      // "remaining words" count here, since that count depends on which
+      // language's word list is active and should update the instant the
+      // language changes, not only after a full initGame()/render() pass.
+      function applyTranslations() {
+        setText("subtitleText", t("subtitle"));
+        setHTML("wordmarkTitle", `${t("wordmarkPrefix")}<span>${t("wordmarkSuffix")}</span>`);
+        setHTML("splashTitle", `${t("wordmarkPrefix")}<span>${t("wordmarkSuffix")}</span>`);
+        setText("langToggleBtn", t("switchLangBtn"));
+        setText("dailyLabelText", t("dailyLabel"));
+        setText("practiceLabelText", t("practiceLabel"));
+        setText("remainingLabelText", t("remainingLabel"));
+        setText("lowerBoundLabel", t("na"));
+        setText("upperBoundLabel", t("voor"));
+        setPlaceholder("guessInput", t("guessPlaceholder"));
+        setText("guessBtn", t("guessBtn"));
+        setText("reloadBtn", t("newGameBtn"));
+        setText("footerNote", t("footer"));
+        setText("statsTitleText", t("statsTitle"));
+        setText("statsNewGameBtn", t("statsNewGame"));
+        document.title = t("titleTag");
+
+        resetHintCooldown();
+        updateModeSelector();
+        updateRemainingIndicator(); // reflect the newly active word list right away
+      }
+
+      function initGame(useDaily) {
+        currentMode = useDaily ? "daily" : "practice";
+
+        // Sync radio buttons
+        document.getElementById("modeDaily").checked = useDaily;
+        document.getElementById("modePractice").checked = !useDaily;
+
+        if (useDaily) {
+          // Try to restore an in-progress daily game
+          const saved = getDailyState();
+          if (saved && saved.secret){
+            secret = saved.secret;
+            lowerBound = saved.lowerBound;
+            upperBound = saved.upperBound;
+            guesses = saved.guesses;
+            gameOver = saved.gameOver;
+          } else {
+            secret = pickDailySecret();
+            lowerBound = ALPHA_FIRST;
+            upperBound = ALPHA_LAST;
+            guesses = [];
+            gameOver = false;
+            saveDailyState();
+          }
+        } else {
+          secret = ANSWER_WORDS[Math.floor(Math.random() * ANSWER_WORDS.length)];
+          lowerBound = ALPHA_FIRST;
+          upperBound = ALPHA_LAST;
+          guesses = [];
+          gameOver = false;
+        }
+
+        // --- clear hints on fresh start ---
+        revealedHintLetters = 0;
+        document.getElementById("hintDisplay").textContent = "";
+        resetHintCooldown();
+
+        // Reset animation caches so the new game's first render snaps
+        // into place instead of sliding/ticking in from the old game's values
+        boundDisplayCache.lower = null;
+        boundDisplayCache.upper = null;
+        displayedRemainingCount = null;
+
+        updateModeSelector();
+        updateStreakDisplay();
+        updateKeyboard();
+        render();
+      }
+
+      function render() {
+        updateKeyboard();
+        updateBoundWord("lowerBoundInner", displayBound(lowerBound), "lower");
+        updateBoundWord("upperBoundInner", displayBound(upperBound), "upper");
+        document.getElementById("guessNum").textContent = t("guessNum")(guesses.length + 1);
+        document.getElementById("triesLeft").textContent = t("triesLeft")(
+          MAX_TRIES - guesses.length
+        );
+        updateRemainingIndicator();
+
+        // Rail fill: represent the shrinking range visually as a position band
+        const lowerFrac = rangeFraction(lowerBound);
+        const upperFrac = rangeFraction(upperBound);
+        const fill = document.getElementById("railFill");
+        fill.style.top = `${lowerFrac * 100}%`;
+        fill.style.height = `${Math.max(2, (upperFrac - lowerFrac) * 100)}%`;
+
+        updateSecretPositionHint();
+
+        const input = document.getElementById("guessInput");
+        const btn = document.getElementById("guessBtn");
+        if (gameOver) {
+          input.disabled = true;
+          btn.disabled = true;
+        } else {
+          input.disabled = false;
+          btn.disabled = false;
+        }
+      }
+
+      function rangeFraction(word) {
+        // Crude alphabetical position estimate for visual purposes, using
+        // the same custom alphabet order as wordCompare() (so Ñ shows up
+        // between N and O on the rail, not off past Z).
+        const alphabet = getAlphabet();
+        const maxIdx = alphabet.length - 1;
+        const ch = word[0];
+        let idx;
+        if (ch === "\u0000") idx = 0;
+        else if (ch === "\uffff") idx = maxIdx;
+        else {
+          const found = alphabet.indexOf(ch);
+          idx = found === -1 ? maxIdx : found;
+        }
+        return Math.min(1, Math.max(0, idx / maxIdx));
+      }
+
+      function updateSecretPositionHint() {
+        // For each bound, express what fraction of the FULL word list lies
+        // between that bound and the secret answer. These two percentages
+        // are independent of each other (they do NOT need to sum to 100%).
+        const topEl = document.getElementById("railPctTop");
+        const bottomEl = document.getElementById("railPctBottom");
+
+        const total = GUESS_WORDS.length;
+        if (total === 0) {
+          topEl.textContent = "—";
+          bottomEl.textContent = "—";
+          return;
+        }
+
+        const countBetweenLowerAndSecret = GUESS_WORDS.filter(
+          (w) => wordCompare(w, lowerBound) > 0 && wordCompare(w, secret) < 0
+        ).length;
+
+        const countBetweenSecretAndUpper = GUESS_WORDS.filter(
+          (w) => wordCompare(w, secret) > 0 && wordCompare(w, upperBound) < 0
+        ).length;
+
+        const fromLowerRaw = (countBetweenLowerAndSecret / total) * 100;
+        const fromUpperRaw = (countBetweenSecretAndUpper / total) * 100;
+
+        const formatPct = (rawVal) => {
+          if (rawVal < 3) {
+            return rawVal.toFixed(2);
+          }
+          return rawVal.toFixed(0);
+        };
+
+        topEl.textContent = `${formatPct(fromLowerRaw)}%`;
+        bottomEl.textContent = `${formatPct(fromUpperRaw)}%`;
+      }
+
+      function showFeedback(msg) {
+        const el = document.getElementById("feedback");
+        el.textContent = msg;
+      }
+
+      function endGame(won) {
+        gameOver = true;
+        if (won) {
+          recordWin(guesses.length);
+        } else {
+          recordFail();
+          showFeedback(t("loseMsg")(secret));
+        }
+        if (currentMode === "daily") {
+          if (won) recordDailyWinStreak();
+          saveDailyState();
+          currentMode = "practice";
+          updateModeSelector();
+          updateStreakDisplay();
+        }
+        showStatsModal(won);
+        render();
+      }
+
+      document
+        .getElementById("guessForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          if (gameOver) return;
+
+          const input = document.getElementById("guessInput");
+          const guess = input.value.trim().toUpperCase();
+
+          if (guess.length !== 5) {
+            showFeedback(t("feedbackLen"));
+            return;
+          }
+          if (!letterRegex().test(guess)) {
+            showFeedback(t("feedbackLetters"));
+            return;
+          }
+          if (!GUESS_WORDS.includes(guess)) {
+            showFeedback(t("feedbackNotInList"));
+            return;
+          }
+          if (wordCompare(guess, lowerBound) <= 0) {
+            showFeedback(t("feedbackAfter")(displayBound(lowerBound)));
+            return;
+          }
+          if (wordCompare(guess, upperBound) >= 0) {
+            showFeedback(t("feedbackBefore")(displayBound(upperBound)));
+            return;
+          }
+
+          showFeedback("");
+          input.value = "";
+
+          if (guess === secret) {
+            guesses.push({ word: guess, result: "correct" });
+            endGame(true);
+            return;
+          }
+
+          if (wordCompare(guess, secret) < 0) {
+            lowerBound = guess;
+            guesses.push({ word: guess, result: "after" }); // secret is AFTER guess
+          } else {
+            upperBound = guess;
+            guesses.push({ word: guess, result: "before" }); // secret is BEFORE guess
+          }
+
+          if (guesses.length >= MAX_TRIES) {
+            endGame(false);
+            return;
+          }
+
+          if (currentMode === "daily") saveDailyState();
+          render();
+        });
+
+      // Restrict input to letters
+      document
+        .getElementById("guessInput")
+        .addEventListener("input", function () {
+          this.value = this.value.replace(inputFilterRegex(), "").toUpperCase();
+
+          updateKeyboard();
+        });
+
+
+      document
+        .getElementById("reloadBtn")
+        .addEventListener("click", function () {
+          showFeedback("");
+          buildKeyboard();
+          initGame(false); // always practice on manual reload
+        });
+
+      // Mode radio buttons
+      document.querySelectorAll('input[name="gameMode"]').forEach((radio) => {
+        radio.addEventListener("change", function () {
+          showFeedback("");
+          buildKeyboard();
+          initGame(this.value === "daily");
+        });
+      });
+
+      // Language toggle
+      document.getElementById("langToggleBtn").addEventListener("click", function () {
+        currentLang = currentLang === "nl" ? "es" : "nl";
+        setActiveWordSet(currentLang);
+        showFeedback("");
+        applyTranslations();
+        buildKeyboard();
+        initGame(!isDailyDone());
+      });
+
+      function getStats() {
+        return JSON.parse(
+          localStorage.getItem(storageKey("tussenwoordStats")) ||
+            JSON.stringify({
+              wins: Array(12).fill(0),
+              fails: 0,
+            })
+        );
+      }
+
+      document.getElementById("closeStatsBtn").addEventListener("click", () => {
+        document.getElementById("statsModal").classList.remove("show");
+      });
+
+      document
+        .getElementById("statsNewGameBtn")
+        .addEventListener("click", () => {
+          document.getElementById("statsModal").classList.remove("show");
+
+          showFeedback("");
+          buildKeyboard();
+          initGame(false); // new game after stats always means practice
+        });
+      function saveStats(stats) {
+        localStorage.setItem(storageKey("tussenwoordStats"), JSON.stringify(stats));
+      }
+
+      function recordWin(tries) {
+        const stats = getStats();
+
+        if (tries >= 1 && tries <= 12) {
+          stats.wins[tries - 1]++;
+        }
+
+        saveStats(stats);
+      }
+
+      function recordFail() {
+        const stats = getStats();
+        stats.fails++;
+        saveStats(stats);
+      }
+
+      function showStatsModal(won) {
+        const stats = getStats();
+        const container = document.getElementById("statsHistogram");
+        const messageEl = document.getElementById("statsMessage");
+
+        container.innerHTML = "";
+
+        if (gameOver) {
+          messageEl.className = "stats-result";
+
+          if (won) {
+            messageEl.classList.add("win");
+            messageEl.innerHTML = t("winMsg")(guesses.length, secret);
+          } else {
+            messageEl.classList.add("loss");
+            messageEl.innerHTML = t("lossMsg")(secret);
+          }
+        } else {
+          messageEl.textContent = "";
+        }
+
+        const maxValue = Math.max(...stats.wins, stats.fails, 1);
+
+        stats.wins.forEach((count, index) => {
+          const width = (count / maxValue) * 100;
+
+          container.innerHTML += `
+      <div class="histogram-row">
+        <div class="histogram-label">${index + 1}</div>
+        <div class="histogram-bar"
+             style="width:${Math.max(width, 10)}%">
+          ${count}
+        </div>
+      </div>
+    `;
+        });
+
+        const failWidth = (stats.fails / maxValue) * 100;
+
+        container.innerHTML += `
+    <div class="histogram-row">
+      <div class="histogram-label">X</div>
+      <div class="histogram-bar"
+           style="width:${Math.max(failWidth, 10)}%">
+        ${stats.fails}
+      </div>
+    </div>
+  `;
+
+        document.getElementById("statsModal").classList.add("show");
+      }
+
+      async function loadWordLists() {
+        const [nlGuessRes, nlAnswerRes, esGuessRes, esAnswerRes] = await Promise.all([
+          fetch("all-words.txt"),
+          fetch("all-words-answers.txt"),
+          fetch("all-words-es.txt"),
+          fetch("all-words-answers-es.txt"),
+        ]);
+
+        const parse = (txt) =>
+          txt
+            .split(/\r?\n/)
+            .map((w) => w.trim().toUpperCase())
+            .filter(Boolean);
+
+        WORD_SETS.nl.guess = parse(await nlGuessRes.text());
+        WORD_SETS.nl.answer = parse(await nlAnswerRes.text());
+        WORD_SETS.es.guess = parse(await esGuessRes.text());
+        WORD_SETS.es.answer = parse(await esAnswerRes.text());
+
+        setActiveWordSet(currentLang);
+        buildKeyboard();
+        applyTranslations();
+        // Start in daily mode unless today's daily is already completed
+        initGame(!isDailyDone());
+      }
+
+      // --- Hint System Logic ---
+      // Renders the hint word as individual letter spans, animating only the
+      // letters that just became revealed (indices >= previouslyRevealed).
+      function renderHintDisplay(revealedCount, previouslyRevealed) {
+        const el = document.getElementById("hintDisplay");
+        el.innerHTML = "";
+
+        for (let i = 0; i < 5; i++) {
+          const span = document.createElement("span");
+          span.className = "hint-letter";
+
+          if (i < revealedCount) {
+            span.textContent = secret[i];
+            if (!prefersReducedMotion() && i >= previouslyRevealed) {
+              span.classList.add("hint-letter-reveal");
+            }
+          } else {
+            span.textContent = ".";
+            span.classList.add("hint-letter-dot");
+          }
+
+          el.appendChild(span);
+        }
+      }
+
+      function handleHint() {
+        if (gameOver || cooldownRemaining > 0) return;
+
+        // Check how many letters are known based on the LB and UB
+        let knownLetters = 0;
+
+        while (
+            knownLetters < 5 &&
+            lowerBound[knownLetters] === upperBound[knownLetters]
+        ) {
+            knownLetters++;
+        }
+
+        revealedHintLetters = Math.max(
+            revealedHintLetters,
+            knownLetters
+        );
+
+        // Reveal one extra letter each time
+        const previouslyRevealed = revealedHintLetters;
+        revealedHintLetters = Math.min(revealedHintLetters + 1, 5);
+
+        renderHintDisplay(revealedHintLetters, previouslyRevealed);
+
+        // Optional: disable button when all letters revealed
+        if (revealedHintLetters >= 5) {
+          document.getElementById("hintBtn").disabled = true;
+          document.getElementById("hintBtn").textContent = t("hintNone");
+          return;
+        }
+
+        startHintCooldown();
+      }
+
+      function startHintCooldown() {
+        const btn = document.getElementById("hintBtn");
+        cooldownRemaining = 10;
+        btn.disabled = true;
+        btn.style.opacity = "0.5";
+        btn.textContent = t("hintWait")(cooldownRemaining);
+
+        cooldownTimer = setInterval(() => {
+          cooldownRemaining--;
+          if (cooldownRemaining <= 0) {
+            resetHintCooldown();
+          } else {
+            btn.textContent = t("hintWait")(cooldownRemaining);
+          }
+        }, 1000);
+      }
+
+      function resetHintCooldown() {
+        if (cooldownTimer) {
+          clearInterval(cooldownTimer);
+          cooldownTimer = null;
+        }
+        cooldownRemaining = 0;
+        const btn = document.getElementById("hintBtn");
+        if (btn) {
+          btn.disabled = false;
+          btn.style.opacity = "1";
+          btn.textContent = t("hintBtn");
+        }
+      }
+
+      window.addEventListener("load", () => {
+        const splash = document.getElementById("splash");
+        splash.style.opacity = "0";
+        setTimeout(() => splash.remove(), 400);
+      });
+
+      // Bind the click listener
+      document.getElementById("hintBtn").addEventListener("click", handleHint);
+
+      loadWordLists();
+    </script>
+  </body>
+</html>

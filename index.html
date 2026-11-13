@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="nl">
   <head>
-    <link rel="apple-touch-icon" href="./assets/icons/apple-touch-icon.png">
-    <link rel="manifest" href="./manifest.json">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta charset="UTF-8" />
@@ -124,8 +124,8 @@
           var(--ember-dim) 100%
         );
         border-radius: 6px;
-        transition: top 0.55s cubic-bezier(0.34, 1.56, 0.64, 1),
-          height 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+        transition: top 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+          height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
       .bounds {
@@ -158,60 +158,6 @@
         letter-spacing: 0.08em;
         margin: 0;
         color: var(--paper);
-        overflow: hidden;
-        position: relative;
-        line-height: 1.5;
-      }
-
-      .bound-word-inner {
-        display: inline-block;
-        will-change: transform, opacity;
-      }
-
-      @keyframes boundSlideOutUp {
-        to {
-          transform: translateY(-120%);
-          opacity: 0;
-        }
-      }
-      @keyframes boundSlideInUp {
-        from {
-          transform: translateY(120%);
-          opacity: 0;
-        }
-        to {
-          transform: translateY(0);
-          opacity: 1;
-        }
-      }
-      @keyframes boundSlideOutDown {
-        to {
-          transform: translateY(120%);
-          opacity: 0;
-        }
-      }
-      @keyframes boundSlideInDown {
-        from {
-          transform: translateY(-120%);
-          opacity: 0;
-        }
-        to {
-          transform: translateY(0);
-          opacity: 1;
-        }
-      }
-
-      .bound-slide-out-up {
-        animation: boundSlideOutUp 0.22s ease-in forwards;
-      }
-      .bound-slide-in-up {
-        animation: boundSlideInUp 0.22s ease-out forwards;
-      }
-      .bound-slide-out-down {
-        animation: boundSlideOutDown 0.22s ease-in forwards;
-      }
-      .bound-slide-in-down {
-        animation: boundSlideInDown 0.22s ease-out forwards;
       }
 
       .bound-box.top {
@@ -326,24 +272,6 @@
         transition: border-color 0.15s, color 0.15s;
       }
 
-      .lang-toggle-btn {
-        background: transparent;
-        border: 1px solid var(--slate);
-        color: var(--paper);
-        border-radius: 6px;
-        padding: 6px 14px;
-        font-size: 0.72rem;
-        font-weight: 700;
-        cursor: pointer;
-        margin-bottom: 14px;
-        transition: border-color 0.15s, color 0.15s, background 0.15s;
-      }
-
-      .lang-toggle-btn:hover {
-        border-color: var(--ember);
-        color: var(--ember);
-      }
-
       /* --- Remaining words indicator --- */
       .remaining-indicator {
         display: flex;
@@ -353,28 +281,11 @@
       }
 
       .remaining-count {
-        display: inline-block;
         font-family: "Courier New", monospace;
         font-size: 1.6rem;
         font-weight: 700;
         color: var(--ember);
         transition: color 0.2s;
-      }
-
-      @keyframes countPulse {
-        0% {
-          transform: scale(1);
-        }
-        30% {
-          transform: scale(1.18);
-        }
-        100% {
-          transform: scale(1);
-        }
-      }
-
-      .count-pulse {
-        animation: countPulse 0.4s ease-out;
       }
 
       .remaining-label {
@@ -603,41 +514,6 @@
       .streak-count {
         font-size: 0.85rem;
       }
-
-      /* --- Hint letter reveal --- */
-      #hintDisplay {
-        display: flex;
-        justify-content: center;
-        gap: 3px;
-      }
-
-      .hint-letter {
-        display: inline-block;
-        min-width: 1ch;
-      }
-
-      .hint-letter-dot {
-        opacity: 0.5;
-      }
-
-      @keyframes hintLetterReveal {
-        0% {
-          transform: scale(0.4) translateY(6px);
-          opacity: 0;
-        }
-        60% {
-          transform: scale(1.15);
-          opacity: 1;
-        }
-        100% {
-          transform: scale(1) translateY(0);
-          opacity: 1;
-        }
-      }
-
-      .hint-letter-reveal {
-        animation: hintLetterReveal 0.35s ease-out;
-      }
     </style>
   </head>
   <body>
@@ -647,9 +523,20 @@
     <h1 class="wordmark" id="wordmarkTitle">tussen<span>woord</span></h1>
     <p class="subtitle" id="subtitleText">vind het woord ertussenin</p>
 
-    <button type="button" class="lang-toggle-btn" id="langToggleBtn">
-      🇪🇸 Español
-    </button>
+    <div class="mode-selector" id="langSelector" style="max-width: 380px;">
+      <div class="mode-option">
+        <input type="radio" name="gameLang" id="langNl" value="nl" checked />
+        <label for="langNl">🇳🇱 Nederlands</label>
+      </div>
+      <div class="mode-option">
+        <input type="radio" name="gameLang" id="langEn" value="en" />
+        <label for="langEn">🇬🇧 English</label>
+      </div>
+      <div class="mode-option">
+        <input type="radio" name="gameLang" id="langEs" value="es" />
+        <label for="langEs">🇪🇸 Español</label>
+      </div>
+    </div>
 
     <!-- Mode selector + streak -->
     <div style="display:flex; gap:6px; margin-bottom:20px; width:100%; max-width:380px; align-items:stretch;">
@@ -684,7 +571,7 @@
       <div class="bounds">
         <div class="bound-box top">
           <p class="bound-label" id="lowerBoundLabel">na</p>
-          <p class="bound-word" id="lowerBound"><span class="bound-word-inner" id="lowerBoundInner">AAAAA</span></p>
+          <p class="bound-word" id="lowerBound">AAAAA</p>
         </div>
     <form class="guess-form" id="guessForm">
       <input
@@ -701,7 +588,7 @@
     </form>
         <div class="bound-box bottom">
           <p class="bound-label" id="upperBoundLabel">voor</p>
-          <p class="bound-word" id="upperBound"><span class="bound-word-inner" id="upperBoundInner">ZZZZZ</span></p>
+          <p class="bound-word" id="upperBound">ZZZZZ</p>
         </div>
       </div>
     </div>
@@ -779,101 +666,12 @@
       const ALPHA_LAST = "\uffff\uffff\uffff\uffff\uffff";
       const MAX_TRIES = 12;
 
-      // --- Animation helpers (bound slide, count tick, hint reveal) ---
-      function prefersReducedMotion() {
-        return (
-          window.matchMedia &&
-          window.matchMedia("(prefers-reduced-motion: reduce)").matches
-        );
-      }
-
-      // Tracks the last-displayed bound text so we only animate on real changes,
-      // and skip animating the very first render (game start / reset).
-      const boundDisplayCache = { lower: null, upper: null };
-
-      function animateBoundChange(el, newText, direction) {
-        const outClass =
-          direction === "up" ? "bound-slide-out-up" : "bound-slide-out-down";
-        const inClass =
-          direction === "up" ? "bound-slide-in-up" : "bound-slide-in-down";
-
-        // Clear any animation already in flight on this element
-        el.classList.remove(
-          "bound-slide-out-up",
-          "bound-slide-out-down",
-          "bound-slide-in-up",
-          "bound-slide-in-down"
-        );
-        void el.offsetWidth; // force reflow so class removal registers before re-adding
-
-        el.classList.add(outClass);
-
-        el.addEventListener(
-          "animationend",
-          function onOutEnd() {
-            el.textContent = newText;
-            el.classList.remove(outClass);
-            void el.offsetWidth;
-            el.classList.add(inClass);
-            el.addEventListener(
-              "animationend",
-              function onInEnd() {
-                el.classList.remove(inClass);
-              },
-              { once: true }
-            );
-          },
-          { once: true }
-        );
-      }
-
-      // kind: 'lower' | 'upper'. Lower bound grows up the alphabet -> slides "up".
-      // Upper bound shrinks down the alphabet -> slides "down".
-      function updateBoundWord(elId, newText, kind) {
-        const el = document.getElementById(elId);
-        const prev = boundDisplayCache[kind];
-        boundDisplayCache[kind] = newText;
-
-        if (prev === null || prev === newText || prefersReducedMotion()) {
-          el.textContent = newText;
-          return;
-        }
-
-        animateBoundChange(el, newText, kind === "lower" ? "up" : "down");
-      }
-
-      // Tracks the last-displayed remaining count so we can tween between values.
-      let displayedRemainingCount = null;
-      let remainingCountAnimId = 0;
-
-      function animateCountChange(el, from, to) {
-        const myId = ++remainingCountAnimId;
-        const duration = 400;
-        const start = performance.now();
-        el.classList.add("count-pulse");
-
-        function step(now) {
-          if (myId !== remainingCountAnimId) return; // superseded by a newer update
-          const progress = Math.min(1, (now - start) / duration);
-          const eased = 1 - Math.pow(1 - progress, 3);
-          el.textContent = Math.round(from + (to - from) * eased);
-          if (progress < 1) {
-            requestAnimationFrame(step);
-          } else {
-            el.textContent = to;
-            el.classList.remove("count-pulse");
-          }
-        }
-        requestAnimationFrame(step);
-      }
-
       const translations = {
         nl: {
           titleTag: "Tussenwoord",
           subtitle: "vind het woord ertussenin",
           wordmarkPrefix: "tussen",
           wordmarkSuffix: "woord",
-          switchLangBtn: "🇪🇸 Español",
           dailyLabel: "📅 Dagwoord",
           practiceLabel: "🎯 Oefenen",
           badgeNew: "NIEUW",
@@ -913,7 +711,6 @@
           subtitle: "encuentra la palabra intermedia",
           wordmarkPrefix: "entre",
           wordmarkSuffix: "palabra",
-          switchLangBtn: "🇳🇱 Nederlands",
           dailyLabel: "📅 Palabra del día",
           practiceLabel: "🎯 Practicar",
           badgeNew: "NUEVO",
@@ -948,9 +745,47 @@
           lossMsg: (secret) =>
             `❌ No lo lograste<br>La palabra era<br><span style="font-size:1.2rem">${secret}</span>`,
         },
+        en: {
+          titleTag: "Betweenword",
+          subtitle: "find the word in between",
+          wordmarkPrefix: "between",
+          wordmarkSuffix: "word",
+          dailyLabel: "📅 Daily word",
+          practiceLabel: "🎯 Practice",
+          badgeNew: "NEW",
+          badgeDone: "DONE",
+          remainingLabel: "possible words left",
+          na: "after",
+          voor: "before",
+          guessPlaceholder: "word",
+          guessBtn: "guess",
+          newGameBtn: "🔄 new game",
+          triesLeft: (n) => `${n} tries left`,
+          guessNum: (n) => `guess ${n}`,
+          feedbackLen: "enter a 5-letter word",
+          feedbackLetters: "only letters are allowed",
+          feedbackNotInList: "that word isn't in the word list",
+          feedbackAfter: (w) =>
+            `that word is no longer within range — it must come after "${w}"`,
+          feedbackBefore: (w) =>
+            `that word is no longer within range — it must come before "${w}"`,
+          loseMsg: (w) => `too bad — the word was: ${w}`,
+          hintBtn: "💡 Give me a hint",
+          hintWait: (s) => `💡 Hint (wait ${s}s)`,
+          hintNone: "💡 No more hints",
+          footer:
+            'Guess the 5-letter word. Betweenword tells you whether the secret word comes before or after it in the alphabet. Each guess narrows down the possible range.',
+          statsTitle: "Statistics",
+          statsNewGame: "New game",
+          winMsg: (tries, secret) =>
+            `🎉 Solved in ${tries} ${
+              tries === 1 ? "try" : "tries"
+            }<br><span style="font-size:1.2rem">${secret}</span>`,
+          lossMsg: (secret) =>
+            `❌ Not solved<br>The word was<br><span style="font-size:1.2rem">${secret}</span>`,
+        },
       };
 
-      
       let currentLang = "nl";
       function t(key) {
         return translations[currentLang][key];
@@ -961,7 +796,9 @@
       const WORD_SETS = {
         nl: { guess: [], answer: [] },
         es: { guess: [], answer: [] },
+        en: { guess: [], answer: [] },
       };
+
 
       let GUESS_WORDS = [];
       let ANSWER_WORDS = [];
@@ -1044,11 +881,13 @@
       }
 
       // Per-language localStorage keys, so daily/streak/stats progress for
-      // Dutch and Spanish don't overwrite each other. Dutch keeps the
-      // original (unsuffixed) keys for backward compatibility with
+      // Dutch, Spanish and English don't overwrite each other. Dutch keeps
+      // the original (unsuffixed) keys for backward compatibility with
       // existing saved progress.
       function storageKey(base) {
-        return currentLang === "es" ? `${base}-es` : base;
+        if (currentLang === "es") return `${base}-es`;
+        if (currentLang === "en") return `${base}-en`;
+        return base;
       }
 
       function displayBound(word) {
@@ -1157,29 +996,13 @@
       function updateRemainingIndicator() {
         const count = countRemainingWords();
         const el = document.getElementById("remainingCount");
-
+        el.textContent = count;
         // Subtle color cue: fewer remaining = closer to winning
         if (count <= 3) {
           el.style.color = "var(--good)";
         } else {
           el.style.color = "var(--ember)";
         }
-
-        if (
-          displayedRemainingCount === null ||
-          displayedRemainingCount === count ||
-          prefersReducedMotion()
-        ) {
-          remainingCountAnimId++; // cancel any in-flight tween
-          el.classList.remove("count-pulse");
-          el.textContent = count;
-          displayedRemainingCount = count;
-          return;
-        }
-
-        const from = displayedRemainingCount;
-        displayedRemainingCount = count;
-        animateCountChange(el, from, count);
       }
 
       function pickDailySecret() {
@@ -1311,7 +1134,6 @@
         setText("subtitleText", t("subtitle"));
         setHTML("wordmarkTitle", `${t("wordmarkPrefix")}<span>${t("wordmarkSuffix")}</span>`);
         setHTML("splashTitle", `${t("wordmarkPrefix")}<span>${t("wordmarkSuffix")}</span>`);
-        setText("langToggleBtn", t("switchLangBtn"));
         setText("dailyLabelText", t("dailyLabel"));
         setText("practiceLabelText", t("practiceLabel"));
         setText("remainingLabelText", t("remainingLabel"));
@@ -1324,6 +1146,10 @@
         setText("statsTitleText", t("statsTitle"));
         setText("statsNewGameBtn", t("statsNewGame"));
         document.title = t("titleTag");
+
+        // Keep the language radio buttons in sync with currentLang
+        const langInput = document.getElementById(`lang${currentLang[0].toUpperCase()}${currentLang.slice(1)}`);
+        if (langInput) langInput.checked = true;
 
         resetHintCooldown();
         updateModeSelector();
@@ -1367,12 +1193,6 @@
         document.getElementById("hintDisplay").textContent = "";
         resetHintCooldown();
 
-        // Reset animation caches so the new game's first render snaps
-        // into place instead of sliding/ticking in from the old game's values
-        boundDisplayCache.lower = null;
-        boundDisplayCache.upper = null;
-        displayedRemainingCount = null;
-
         updateModeSelector();
         updateStreakDisplay();
         updateKeyboard();
@@ -1381,8 +1201,8 @@
 
       function render() {
         updateKeyboard();
-        updateBoundWord("lowerBoundInner", displayBound(lowerBound), "lower");
-        updateBoundWord("upperBoundInner", displayBound(upperBound), "upper");
+        document.getElementById("lowerBound").textContent = displayBound(lowerBound);
+        document.getElementById("upperBound").textContent = displayBound(upperBound);
         document.getElementById("guessNum").textContent = t("guessNum")(guesses.length + 1);
         document.getElementById("triesLeft").textContent = t("triesLeft")(
           MAX_TRIES - guesses.length
@@ -1569,14 +1389,17 @@
         });
       });
 
-      // Language toggle
-      document.getElementById("langToggleBtn").addEventListener("click", function () {
-        currentLang = currentLang === "nl" ? "es" : "nl";
-        setActiveWordSet(currentLang);
-        showFeedback("");
-        applyTranslations();
-        buildKeyboard();
-        initGame(!isDailyDone());
+      // Language selector (radio buttons)
+      document.querySelectorAll('input[name="gameLang"]').forEach((radio) => {
+        radio.addEventListener("change", function () {
+          if (this.value === currentLang) return;
+          currentLang = this.value;
+          setActiveWordSet(currentLang);
+          showFeedback("");
+          applyTranslations();
+          buildKeyboard();
+          initGame(!isDailyDone());
+        });
       });
 
       function getStats() {
@@ -1675,11 +1498,20 @@
       }
 
       async function loadWordLists() {
-        const [nlGuessRes, nlAnswerRes, esGuessRes, esAnswerRes] = await Promise.all([
+        const [
+          nlGuessRes,
+          nlAnswerRes,
+          esGuessRes,
+          esAnswerRes,
+          enGuessRes,
+          enAnswerRes,
+        ] = await Promise.all([
           fetch("all-words.txt"),
           fetch("all-words-answers.txt"),
           fetch("all-words-es.txt"),
           fetch("all-words-answers-es.txt"),
+          fetch("all-words-en.txt"),
+          fetch("all-words-answers-en.txt"),
         ]);
 
         const parse = (txt) =>
@@ -1692,6 +1524,8 @@
         WORD_SETS.nl.answer = parse(await nlAnswerRes.text());
         WORD_SETS.es.guess = parse(await esGuessRes.text());
         WORD_SETS.es.answer = parse(await esAnswerRes.text());
+        WORD_SETS.en.guess = parse(await enGuessRes.text());
+        WORD_SETS.en.answer = parse(await enAnswerRes.text());
 
         setActiveWordSet(currentLang);
         buildKeyboard();
@@ -1701,30 +1535,6 @@
       }
 
       // --- Hint System Logic ---
-      // Renders the hint word as individual letter spans, animating only the
-      // letters that just became revealed (indices >= previouslyRevealed).
-      function renderHintDisplay(revealedCount, previouslyRevealed) {
-        const el = document.getElementById("hintDisplay");
-        el.innerHTML = "";
-
-        for (let i = 0; i < 5; i++) {
-          const span = document.createElement("span");
-          span.className = "hint-letter";
-
-          if (i < revealedCount) {
-            span.textContent = secret[i];
-            if (!prefersReducedMotion() && i >= previouslyRevealed) {
-              span.classList.add("hint-letter-reveal");
-            }
-          } else {
-            span.textContent = ".";
-            span.classList.add("hint-letter-dot");
-          }
-
-          el.appendChild(span);
-        }
-      }
-
       function handleHint() {
         if (gameOver || cooldownRemaining > 0) return;
 
@@ -1744,10 +1554,19 @@
         );
 
         // Reveal one extra letter each time
-        const previouslyRevealed = revealedHintLetters;
         revealedHintLetters = Math.min(revealedHintLetters + 1, 5);
 
-        renderHintDisplay(revealedHintLetters, previouslyRevealed);
+        let hintString = "";
+
+        for (let i = 0; i < 5; i++) {
+          if (i < revealedHintLetters) {
+            hintString += secret[i];
+          } else {
+            hintString += ".";
+          }
+        }
+
+        document.getElementById("hintDisplay").textContent = hintString;
 
         // Optional: disable button when all letters revealed
         if (revealedHintLetters >= 5) {

@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="nl">
   <head>
-    <link rel="manifest" href="/manifest.json">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" sizes="180x180" href="./assets/icons/apple-touch-icon.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta charset="UTF-8" />
@@ -1041,6 +1041,7 @@
         const raw = localStorage.getItem(key);
         return raw ? JSON.parse(raw) : null;
       }
+
 
       function saveDailyState() {
         const key = getTodayKey();
